@@ -26,12 +26,18 @@ local function file_exists(name)
      return f ~= nil and io.close(f)
 end
 
-function M.dump()
+function M.dump(opt)
     local opts = opts or { }
     local proj_root = scm.get_project_root()
     local conn = sqlite.open(vim.g.mru_db_path .. "/mru.db")
 
-    local ret = conn:exec("SELECT * FROM mru_list WHERE root LIKE '" .. proj_root .. "' ORDER BY ts DESC;")
+    local ret = nil
+    if opt.algorithm == "mfu" then
+        ret = conn:exec("SELECT * FROM mru_list WHERE root LIKE '" .. proj_root .. "' ORDER BY freq DESC;")
+    else
+        ret = conn:exec("SELECT * FROM mru_list WHERE root LIKE '" .. proj_root .. "' ORDER BY ts DESC;")
+    end
+
     conn:close()
     if ret == nil or ret == "" then
         return

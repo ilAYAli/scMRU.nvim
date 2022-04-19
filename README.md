@@ -25,7 +25,8 @@ MRU repo #1                |  MRU repo #2
 
 
 ### Usage
-* **Mru**        display relevant MRU
+* **Mru**        display most recently used files for repo
+* **Mfu**        display most frequently used files for repo
 * **MruAdd**     explicity add filename to MRU
 * **MruDel**     explicity delete filename from MRU
 * **MruRoot**    print current repository root
