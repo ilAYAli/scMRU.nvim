@@ -27,9 +27,13 @@ local function file_exists(name)
 end
 
 function M.dump(opt)
+    if vim.g.mru_db_path == nil then
+        return
+    end
+
     local opts = opts or { }
     local proj_root = scm.get_project_root()
-    local conn = sqlite.open(vim.g.mru_db_path .. "/mru.db")
+    local conn = sqlite.open(vim.g.mru_db_path)
 
     local ret = nil
     if opt.algorithm == "mfu" then

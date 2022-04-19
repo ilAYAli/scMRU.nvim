@@ -2,7 +2,6 @@ if exists('g:mru_loaded')
     finish
 endif
 let g:mru_loaded = 1
-let g:mru_db_path = expand('<sfile>:p:h:h')
 
 let s:lua_rocks_deps_loc =  expand("<sfile>:h:r") . "/../lua/mru/deps"
 exe "lua package.path = package.path .. ';" . s:lua_rocks_deps_loc . "/lua-?/init.lua'"
