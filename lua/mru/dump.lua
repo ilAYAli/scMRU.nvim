@@ -55,8 +55,12 @@ function M.dump(opt)
         end
     end
 
+    local title = "scMRU"
+    if opt.algorithm == "mfu" then
+        title = "scMFU"
+    end
     pickers.new(opts, {
-        prompt_title = "[scMRU: " .. shrink_path(proj_root) .. " ]",
+        prompt_title = "[" .. title ..": " .. shrink_path(proj_root) .. " ]",
         finder = finders.new_table {
             results = t,
             entry_maker = make_entry.gen_from_file(opts)
