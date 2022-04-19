@@ -5,7 +5,7 @@ local M = {}
 
 function M.init()
     local conn = sqlite.open(vim.g.mru_db_path .. "/mru.db")
-    conn:exec("CREATE TABLE IF NOT EXISTS mru_list(path TEXT PRIMARY KEY, root TEXT, count INTEGER DEFAULT 0);")
+    conn:exec("CREATE TABLE IF NOT EXISTS mru_list(path TEXT PRIMARY KEY, root TEXT, ts INTEGER, freq INTEGER);")
     conn:close()
 end
 
@@ -22,17 +22,42 @@ function M.add(path)
         return
     end
 
-    local proj_root = scm.get_project_root(path)
-
     local conn = sqlite.open(vim.g.mru_db_path .. "/mru.db")
-    local maxval = string.match(tostring(conn:exec("SELECT IFNULL(MAX(count), 0) FROM mru_list")[1][1]), "%d")
-    conn:exec("INSERT OR REPLACE INTO mru_list VALUES ('" .. path .. "', '" .. proj_root .. "', '" .. maxval .. "');")
-    conn:exec("UPDATE mru_list SET count = (SELECT IFNULL(MAX(count) +1, 0) FROM mru_list) WHERE path = '" ..path .. "';")
+
+    local ts = 0
+    do
+        local t = conn:exec("SELECT path, IFNULL(MAX(ts), 0) FROM mru_list")
+        if t ~= nil then
+            local tmp = tostring(t[2][1]):gsub("LL", "")
+            ts = tonumber(tmp)
+
+            local p = t[1][1]
+            if p ~= path then
+                ts = ts + 1
+            end
+        end
+    end
+
+    local freq = 0
+    do
+        local t = conn:exec("SELECT freq FROM mru_list WHERE path LIKE '%" .. path .."';")
+        if t ~= nil then
+            local tmp = tostring(t[1][1]):gsub("LL", "")
+            freq = tonumber(tmp)
+        end
+        freq = freq + 1
+    end
+
+    local proj_root = scm.get_project_root(path)
+    conn:exec("INSERT OR REPLACE INTO mru_list VALUES ('" .. path ..
+               "', '" .. proj_root ..
+               "', '" .. ts ..
+               "', '" .. freq ..
+               "');")
     conn:close()
 end
 
 function M.del(path)
-    print("path:", path)
     if path == nil then
         path = vim.api.nvim_buf_get_name(0)
     end

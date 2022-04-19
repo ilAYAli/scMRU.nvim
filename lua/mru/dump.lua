@@ -31,7 +31,7 @@ function M.dump()
     local proj_root = scm.get_project_root()
     local conn = sqlite.open(vim.g.mru_db_path .. "/mru.db")
 
-    local ret = conn:exec("SELECT * FROM mru_list WHERE root LIKE '" .. proj_root .. "' ORDER BY count DESC;")
+    local ret = conn:exec("SELECT * FROM mru_list WHERE root LIKE '" .. proj_root .. "' ORDER BY ts DESC;")
     conn:close()
     if ret == nil or ret == "" then
         return
