@@ -1,20 +1,31 @@
-# scMRU - source control: Most Recently Used files.
+<h1 align="center">scMRU - source control: Most Recently Used files</h1>
 
-* Telescope integrated per repo MRU
+<h3 align="center">Telescope integrated per repo MRU/MFU</h3>
+<br/><br/>
 
 When working with multiple source repositories, it is often beneficial to have
-one MRU per repository.
-Just cd to the project root, and type `:Mru` or invoke the respective keybinding.
+one file cache per repository.
 
-All files that do not belong to a repository will be added to a global MRU, so
-typing `:Mru` outside a repository brings up the shared MRU.
+Just cd to the project root, and type `:Mru` or invoke the respective keybinding.
+Similarly, typing `:Mfu` brings up the most frequently used files.
+
+All files that do not belong to a repository will be associated with a global cache,
+so typing `:Mru` outside a repository brings up the global MRU.
 
 
 MRU repo #1                |  MRU repo #2
 :-------------------------:|:-------------------------:
 ![](https://github.com/ilAYAli/scMRU/blob/main/media/this_repo_mru.png)  |  ![](https://github.com/ilAYAli/scMRU/blob/main/media/nvim_conf_mru.png)
 
-![](https://github.com/ilAYAli/scMRU/blob/main/media/global_mru.png)
+<h5 align="center">Global MRU</h5>
+<p align="center">
+  <img src="https://github.com/ilAYAli/scMRU/blob/main/media/global_mru.png" />
+</p>
+
+
+
+### Requirements
+    nvim >= 0.5 ?
 
 
 ### Installation
@@ -27,13 +38,15 @@ MRU repo #1                |  MRU repo #2
 ### Usage
 * **Mru**        display most recently used files for repo
 * **Mfu**        display most frequently used files for repo
-* **MruAdd**     explicity add filename to MRU
-* **MruDel**     explicity delete filename from MRU
+* **MruAdd**     explicity add a file from the database
+* **MruDel**     explicity remove a filename from database
 * **MruRoot**    print current repository root
 
 
 ### Keymap example
     vim.api.nvim_set_keymap('n', '<F1>',    "<Cmd>Mru<CR>", opts)
+    vim.api.nvim_set_keymap('n', '<F2>',    "<Cmd>Mfu<CR>", opts)
 
 ### Todo
- * configurability (optionally disable devicons, colors, ...)
+ * Configurability (optionally disable devicons, colors, ...)
+ * Support other SCM's (svn, mercurial, ...)
