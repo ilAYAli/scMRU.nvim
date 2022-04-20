@@ -1,5 +1,5 @@
-local dump = require("mru.dump")
-local modify = require("mru.modify")
+local display = require("mru.display")
+local alter = require("mru.alter")
 local scm = require("mru.scm")
 
 local M = {}
@@ -40,13 +40,13 @@ local function init()
     end
 
     vim.g["mru_db_path"] = dir .. "/scmru.sqlite3"
-    modify.init_db()
+    alter.init_db()
 end
 
 M.init = init
-M.add = modify.add
-M.del = modify.del
-M.dump = dump.dump
+M.add = alter.add
+M.del = alter.del
+M.display = display.display
 M.get_project_root = scm.get_project_root
 
 return M

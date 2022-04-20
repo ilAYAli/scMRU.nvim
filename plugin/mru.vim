@@ -8,8 +8,8 @@ exe "lua package.path = package.path .. ';" . s:lua_rocks_deps_loc . "/lua-?/ini
 
 lua require("mru").init()
 
-command! -nargs=0 Mru lua require("mru").dump({})
-command! -nargs=0 Mfu lua require("mru").dump({algorithm="mfu"})
+command! -nargs=0 Mru lua require("mru").display({})
+command! -nargs=0 Mfu lua require("mru").display({algorithm="mfu"})
 command! -nargs=* MruAdd lua require("mru").add(<q-args>)
 command! -nargs=* MruDel lua require("mru").del(<q-args>)
 command! -nargs=* MruRoot lua print(require("mru").get_project_root())

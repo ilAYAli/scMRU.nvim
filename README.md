@@ -45,7 +45,7 @@ MRU repo #1                |  MRU repo #2
 It is possible to invoke the lua functions directly and supply optional parameters.
 To e.g display the global MRU from within a git repo:
 
-    lua require("mru").dump({root="__global__"})
+    lua require("mru").display({root="__global__"})
 
 
 ### Keymap example

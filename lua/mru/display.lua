@@ -35,7 +35,7 @@ local function file_exists(name)
      return f ~= nil and io.close(f)
 end
 
-function M.dump(opts)
+function M.display(opts)
     if vim.g.mru_db_path == nil then
         return
     end
