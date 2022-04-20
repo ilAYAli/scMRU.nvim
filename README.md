@@ -2,30 +2,34 @@
 
 <h3 align="center">Telescope integrated per repo MRU/MFU</h3>
 <br/><br/>
+<br/><br/>
 
 When working with multiple source repositories, it is often beneficial to have
 one file cache per repository.
 
-Just cd to the project root, and type `:Mru` or invoke the respective keybinding.
-Similarly, typing `:Mfu` brings up the most frequently used files.
+* Files are automatically added to the database and associated with the current
+repository.<br/>
+Untracked files are stored in the global cache.
 
-All files that do not belong to a repository will be associated with a global cache,
-so typing `:Mru` outside a repository brings up the global MRU.
+Type `:MruRepos` to get a selection of repositories with an associated cache.
+
+This brings up a list of cached files for the selected repository.
+
+Type `:Mru` to get a list of the *most recently used* files for the current repository
+(or global cache if cwd is not a tracked directory)
+
+Type `:Mfu` to get a list of the *most frequently used* files.
 
 
-MRU repo #1                |  MRU repo #2
+:MruRepos                   |  MRU global cache
 :-------------------------:|:-------------------------:
+![](https://github.com/ilAYAli/scMRU/blob/main/media/repos.png)  |  ![](https://github.com/ilAYAli/scMRU/blob/main/media/global_mru.png)
+MRU repo #1                |  MRU repo #2
 ![](https://github.com/ilAYAli/scMRU/blob/main/media/this_repo_mru.png)  |  ![](https://github.com/ilAYAli/scMRU/blob/main/media/nvim_conf_mru.png)
-
-<h5 align="center">Global MRU</h5>
-<p align="center">
-  <img src="https://github.com/ilAYAli/scMRU/blob/main/media/global_mru.png" />
-</p>
-
 
 
 ### Requirements
-    nvim >= 0.5 ?
+    nvim >= 0.6
 
 
 ### Installation
@@ -36,11 +40,11 @@ MRU repo #1                |  MRU repo #2
 
 
 ### Usage
-* **Mru**        display most recently used files for repo
-* **Mfu**        display most frequently used files for repo
-* **MruAdd**     explicity add a file from the database
-* **MruDel**     explicity remove a filename from database
-* **MruRoot**    print current repository root
+* **MruRepos**      display a selection of cached repositories
+* **Mru**           display most recently used files for the current repo (cwd)
+* **Mfu**           display most frequently used files for the current repo (cwd)
+* **MruAdd**        explicity add a file from the database
+* **MruDel**        explicity remove a filename from database
 
 It is possible to invoke the lua functions directly and supply optional parameters.
 To e.g display the global MRU from within a git repo:
@@ -49,8 +53,9 @@ To e.g display the global MRU from within a git repo:
 
 
 ### Keymap example
-    vim.api.nvim_set_keymap('n', '<F1>',    "<Cmd>Mru<CR>", opts)
-    vim.api.nvim_set_keymap('n', '<F2>',    "<Cmd>Mfu<CR>", opts)
+    vim.api.nvim_set_keymap('n', '<F1>',    "<Cmd>MruRepos<CR>", opts)
+    vim.api.nvim_set_keymap('n', '<F2>',    "<Cmd>Mru<CR>", opts)
+    vim.api.nvim_set_keymap('n', '<F3>',    "<Cmd>Mfu<CR>", opts)
 
 ### Todo
  * Support other SCM's (svn, mercurial, ...)

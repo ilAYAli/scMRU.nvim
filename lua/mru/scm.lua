@@ -8,7 +8,7 @@ local function get_parent(path)
     return path
 end
 
-function M.get_project_root(filename)
+function M.get_repo_root(filename)
     local cwd = vim.loop.cwd()
 
     if filename == nil then

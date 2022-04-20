@@ -46,7 +46,8 @@ end
 M.init = init
 M.add = alter.add
 M.del = alter.del
-M.display = display.display
-M.get_project_root = scm.get_project_root
+M.display_cache = display.display_cache
+M.display_repos = display.display_repos
+M.get_repo_root = scm.get_repo_root
 
 return M

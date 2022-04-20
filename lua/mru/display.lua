@@ -6,6 +6,8 @@ local finders = require "telescope.finders"
 local sorters = require "telescope.sorters"
 local make_entry = require "telescope.make_entry"
 local conf = require("telescope.config").values
+local actions = require "telescope.actions"
+local action_state = require "telescope.actions.state"
 
 local M = {}
 
@@ -35,14 +37,14 @@ local function file_exists(name)
      return f ~= nil and io.close(f)
 end
 
-function M.display(opts)
+function M.display_cache(opts)
     if vim.g.mru_db_path == nil then
         return
     end
 
     opts = opts or { }
 
-    local proj_root = scm.get_project_root()
+    local proj_root = scm.get_repo_root()
     if opts.root ~= nil then
         proj_root = expand_path(opts.root)
     end
@@ -83,6 +85,54 @@ function M.display(opts)
         previewer = conf.file_previewer(opts),
         shorten_path = true,
     }):find()
+end
+
+
+local repos = function(opts, t)
+    local title = "Repositories"
+    opts = opts or {}
+    pickers.new(opts, {
+        prompt_title = "[" .. title .."]",
+        finder = finders.new_table {
+            results = t,
+            entry_maker = make_entry.gen_from_file(opts)
+        },
+        sorter = conf.generic_sorter(opts),
+        attach_mappings = function(prompt_bufnr, map)
+            actions.select_default:replace(function()
+                actions.close(prompt_bufnr)
+                local selection = action_state.get_selected_entry()
+                -- todo: only remove current telescope opts
+                opts = {}
+                opts.root = expand_path(selection[1])
+                M.display_cache(opts)
+            end)
+        return true
+        end,
+    }):find()
+end
+
+function M.display_repos(opts)
+    if vim.g.mru_db_path == nil then
+        return
+    end
+
+    opts = opts or { }
+
+    local conn = sqlite.open(vim.g.mru_db_path)
+    local ret = conn:exec("SELECT DISTINCT root FROM mru_list ORDER BY root;")
+    conn:close()
+
+    if ret == nil or ret == "" then
+        return
+    end
+
+    local t = {}
+    for _, item in ipairs(ret[1]) do
+        table.insert(t, shrink_path(item))
+    end
+
+    repos(require("telescope.themes").get_dropdown{}, t)
 end
 
 

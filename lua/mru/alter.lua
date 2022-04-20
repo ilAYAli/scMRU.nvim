@@ -56,7 +56,7 @@ function M.add(path)
         freq = freq + 1
     end
 
-    local proj_root = scm.get_project_root(path)
+    local proj_root = scm.get_repo_root(path)
     conn:exec("INSERT OR REPLACE INTO mru_list VALUES ('" .. path ..
                "', '" .. proj_root ..
                "', '" .. ts ..
