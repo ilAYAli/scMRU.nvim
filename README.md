@@ -42,11 +42,17 @@ MRU repo #1                |  MRU repo #2
 * **MruDel**     explicity remove a filename from database
 * **MruRoot**    print current repository root
 
+It is possible to invoke the lua functions directly and supply optional parameters.
+To e.g display the global MRU from within a git repo:
+
+    lua require("mru").dump({root="__global__"})
+
 
 ### Keymap example
     vim.api.nvim_set_keymap('n', '<F1>',    "<Cmd>Mru<CR>", opts)
     vim.api.nvim_set_keymap('n', '<F2>',    "<Cmd>Mfu<CR>", opts)
 
 ### Todo
- * Configurability (optionally disable devicons, colors, ...)
  * Support other SCM's (svn, mercurial, ...)
+ * Improve configurability
+ * Windows support

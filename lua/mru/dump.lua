@@ -21,22 +21,36 @@ local function shrink_path(path)
     return path
 end
 
+local function expand_path(path)
+    local home = os.getenv("HOME")
+    if starts_with(path, "~") then
+        return home .. path:sub(2)
+    end
+    return path
+end
+
+
 local function file_exists(name)
      local f = io.open(name, "r")
      return f ~= nil and io.close(f)
 end
 
-function M.dump(opt)
+function M.dump(opts)
     if vim.g.mru_db_path == nil then
         return
     end
 
-    local opts = opts or { }
+    opts = opts or { }
+
     local proj_root = scm.get_project_root()
+    if opts.root ~= nil then
+        proj_root = expand_path(opts.root)
+    end
+
     local conn = sqlite.open(vim.g.mru_db_path)
 
     local ret = nil
-    if opt.algorithm == "mfu" then
+    if opts.algorithm == "mfu" then
         ret = conn:exec("SELECT * FROM mru_list WHERE root LIKE '" .. proj_root .. "' ORDER BY freq DESC;")
     else
         ret = conn:exec("SELECT * FROM mru_list WHERE root LIKE '" .. proj_root .. "' ORDER BY ts DESC;")
@@ -56,7 +70,7 @@ function M.dump(opt)
     end
 
     local title = "scMRU"
-    if opt.algorithm == "mfu" then
+    if opts.algorithm == "mfu" then
         title = "scMFU"
     end
     pickers.new(opts, {
