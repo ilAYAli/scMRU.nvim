@@ -104,6 +104,7 @@ local repos = function(opts, t)
                 local selection = action_state.get_selected_entry()
                 -- todo: only remove current telescope opts
                 opts = {}
+                vim.api.nvim_set_current_dir(selection[1])
                 opts.root = expand_path(selection[1])
                 M.display_cache(opts)
             end)
