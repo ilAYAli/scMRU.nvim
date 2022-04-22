@@ -20,18 +20,25 @@ function M.display_cache(opts)
 
     opts = opts or { }
 
-    local proj_root = scm.get_repo_root()
+    local db_root = ""
     if opts.root ~= nil then
-        proj_root = util.expand_path(opts.root)
+        db_root = util.shrink_path(opts.root)
+    else
+        local tmp = scm.get_canonical_repo_root()
+        if tmp == nil or tmp == "" then
+            db_root = "__global__"
+        else
+            db_root = util.shrink_path(tmp)
+        end
     end
 
     local conn = sqlite.open(vim.g.mru_db_path)
 
     local ret = nil
     if opts.algorithm == "mfu" then
-        ret = conn:exec("SELECT * FROM mru_list WHERE root LIKE '" .. proj_root .. "' ORDER BY freq DESC;")
+        ret = conn:exec("SELECT * FROM mru_list WHERE root LIKE '" .. db_root .. "' ORDER BY freq DESC;")
     else
-        ret = conn:exec("SELECT * FROM mru_list WHERE root LIKE '" .. proj_root .. "' ORDER BY ts DESC;")
+        ret = conn:exec("SELECT * FROM mru_list WHERE root LIKE '" .. db_root .. "' ORDER BY ts DESC;")
     end
 
     conn:close()
@@ -39,11 +46,11 @@ function M.display_cache(opts)
         return
     end
 
-    local t = {}
-
-    for _, item in ipairs(ret[1]) do
-        if item ~= vim.api.nvim_buf_get_name(0) and util.exists(item) then
-            table.insert(t, item)
+    local files = {}
+    for _, rel_path in ipairs(ret["file"]) do
+        local abs_path = util.expand_path(rel_path)
+        if abs_path ~= vim.api.nvim_buf_get_name(0) and util.exists(abs_path) then
+            table.insert(files, rel_path)
         end
     end
 
@@ -52,14 +59,14 @@ function M.display_cache(opts)
         title = "scMFU"
     end
     pickers.new(opts, {
-        prompt_title = "[" .. title ..": " .. util.shrink_path(proj_root) .. " ]",
+        prompt_title = "[" .. title ..": " .. db_root .. " ]",
         finder = finders.new_table {
-            results = t,
+            results = files,
             entry_maker = make_entry.gen_from_file(opts)
         },
         sorter = sorters.get_generic_fuzzy_sorter({}),
         previewer = conf.file_previewer(opts),
-        shorten_path = true,
+        --shorten_path = true,
     }):find()
 end
 
@@ -74,21 +81,17 @@ local repos = function(opts, t)
             entry_maker = make_entry.gen_from_file(opts)
         },
         sorter = conf.generic_sorter(opts),
-        attach_mappings = function(prompt_bufnr, map)
+        attach_mappings = function(prompt_bufnr, _)
             actions.select_default:replace(function()
                 actions.close(prompt_bufnr)
-                local selection = action_state.get_selected_entry()
-                local path = util.expand_path(selection[1])
-                print("path:", path)
-                if util.isdir(path) then
-                    vim.api.nvim_set_current_dir(path)
-                    -- todo: only remove current telescope opts
-                    opts = {}
-                    opts.root = util.expand_path(path)
-                    M.display_cache(opts)
-                else
-                    alter.del(path)
+                local selection = action_state.get_selected_entry()[1]
+                if selection ~= "__global__" then
+                    vim.api.nvim_set_current_dir(selection)
                 end
+                -- todo: only remove current telescope opts
+                opts = {}
+                opts.root = selection
+                M.display_cache(opts)
             end)
         return true
         end,
@@ -111,8 +114,14 @@ function M.display_repos(opts)
     end
 
     local t = {}
-    for _, item in ipairs(ret[1]) do
-        table.insert(t, util.shrink_path(item))
+    for _, rel_dir in ipairs(ret["root"]) do
+        local abs_path = util.expand_path(rel_dir)
+        if abs_path == "__global__" or util.isdir(abs_path) then
+            table.insert(t, rel_dir)
+        else
+            print("removing dead repo:", abs_path)
+            alter.del(abs_path)
+        end
     end
 
     repos(require("telescope.themes").get_dropdown{}, t)

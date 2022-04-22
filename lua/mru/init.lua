@@ -1,24 +1,12 @@
 local display = require("mru.display")
 local alter = require("mru.alter")
 local scm = require("mru.scm")
+local util = require("mru.util")
 
 local M = {}
 
-local function exists(file)
-   local ok, err, code = os.rename(file, file)
-   if not ok then
-      if code == 13 then
-         return true
-      end
-   end
-   return ok, err
-end
-
-local function isdir(path)
-   return exists(path.."/")
-end
-
-local function init()
+local function setup(opts)
+    opts = opts or {}
     vim.g["mru_db_path"] = nil
 
     -- prefer $XDG_DATA_HOME/nvim
@@ -30,24 +18,24 @@ local function init()
     end
 
     -- fallback to ~/.cache
-    if not isdir(dir) then
+    if not util.isdir(dir) then
         dir = os.getenv("HOME") .. "/.cache"
     end
 
-    if not isdir(dir) then
+    if not util.isdir(dir) then
         error("error, unable to resolve database directory")
         return
     end
 
     vim.g["mru_db_path"] = dir .. "/scmru.sqlite3"
-    alter.init_db()
+    alter.setup()
 end
 
-M.init = init
+M.setup = setup
 M.add = alter.add
 M.del = alter.del
 M.display_cache = display.display_cache
 M.display_repos = display.display_repos
-M.get_repo_root = scm.get_repo_root
+M.get_canonical_repo_root = scm.get_canonical_repo_root
 
 return M

@@ -6,7 +6,7 @@ let g:mru_loaded = 1
 let s:lua_rocks_deps_loc =  expand("<sfile>:h:r") . "/../lua/mru/deps"
 exe "lua package.path = package.path .. ';" . s:lua_rocks_deps_loc . "/lua-?/init.lua'"
 
-lua require("mru").init()
+lua require("mru").setup({})
 
 command! -nargs=0 Mru       lua require("mru").display_cache({})
 command! -nargs=0 Mfu       lua require("mru").display_cache({algorithm="mfu"})

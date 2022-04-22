@@ -1,27 +1,45 @@
 local M = {}
 
-function M.exists(file)
-   local ok, err, code = os.rename(file, file)
-   if not ok then
-      if code == 13 then
-         return true
-      end
-   end
-   return ok, err
+-- should be called with canonical path
+function M.exists(path)
+    if path == nil or path == "" then
+        return false
+    end
+    local ok, err, code = os.rename(path, path)
+    if not ok then
+        if code == 13 then
+            return true
+        end
+    end
+    return ok, err
 end
 
+-- should be called with canonical path
 function M.isdir(path)
-   return M.exists(path.."/")
+    if path == nil or path == "" then
+        return false
+    end
+    return M.exists(path.."/")
 end
 
 function M.starts_with(text, prefix)
+    if text == nil or next == "" then
+        error("'text' must be specified")
+    end
     return text:find(prefix, 1, true) == 1
 end
 
-function M.shrink_path(path)
-    local home = os.getenv("HOME")
-    if M.starts_with(path, home) then
-        return "~" .. path:sub(string.len(home) +1)
+function M.shrink_path(path, prefix)
+    if prefix ~= nil then
+        if M.starts_with(path, prefix) then
+            return path:sub(string.len(prefix) +2)
+        end
+        return path
+    end
+
+    prefix = os.getenv("HOME")
+    if M.starts_with(path, prefix) then
+        return "~" .. path:sub(string.len(prefix) +1)
     end
     return path
 end

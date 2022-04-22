@@ -1,3 +1,5 @@
+local util = require("mru.util")
+
 local M = {}
 
 local function get_parent(path)
@@ -8,18 +10,22 @@ local function get_parent(path)
     return path
 end
 
-function M.get_repo_root(filename)
+function M.get_canonical_repo_root(path)
     local cwd = vim.loop.cwd()
 
-    if filename == nil then
-        filename = vim.api.nvim_buf_get_name(0)
+    if path == nil or path == "" then
+        path = vim.api.nvim_buf_get_name(0)
+        if path == nil or path == "" then
+            return
+        end
     end
 
-    if filename ~= nil then
-        local dir = get_parent(filename)
-        if dir ~= nil then
-            vim.api.nvim_set_current_dir(dir)
-        end
+    local dir = path
+    if not util.isdir(path) then
+        dir = get_parent(path)
+    end
+    if dir ~= nil then
+        vim.api.nvim_set_current_dir(dir)
     end
 
     local f = assert(io.popen("git rev-parse --show-toplevel 2>/dev/null"))
@@ -29,7 +35,7 @@ function M.get_repo_root(filename)
     vim.api.nvim_set_current_dir(cwd)
     local root = data:gsub("%s+", "")
     if root == nil or root == '' then
-        root = "__global__"
+        return nil
     end
     return root
 end
