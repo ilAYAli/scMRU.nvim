@@ -1,5 +1,7 @@
 local sqlite = require("ljsqlite3")
 local scm = require("mru.scm")
+local alter = require("mru.alter")
+local util = require("mru.util")
 
 local pickers = require "telescope.pickers"
 local finders = require "telescope.finders"
@@ -11,32 +13,6 @@ local action_state = require "telescope.actions.state"
 
 local M = {}
 
-local function starts_with(text, prefix)
-    return text:find(prefix, 1, true) == 1
-end
-
-local function shrink_path(path)
-    local home = os.getenv("HOME")
-    if starts_with(path, home) then
-        return "~" .. path:sub(string.len(home) +1)
-    end
-    return path
-end
-
-local function expand_path(path)
-    local home = os.getenv("HOME")
-    if starts_with(path, "~") then
-        return home .. path:sub(2)
-    end
-    return path
-end
-
-
-local function file_exists(name)
-     local f = io.open(name, "r")
-     return f ~= nil and io.close(f)
-end
-
 function M.display_cache(opts)
     if vim.g.mru_db_path == nil then
         return
@@ -46,7 +22,7 @@ function M.display_cache(opts)
 
     local proj_root = scm.get_repo_root()
     if opts.root ~= nil then
-        proj_root = expand_path(opts.root)
+        proj_root = util.expand_path(opts.root)
     end
 
     local conn = sqlite.open(vim.g.mru_db_path)
@@ -66,7 +42,7 @@ function M.display_cache(opts)
     local t = {}
 
     for _, item in ipairs(ret[1]) do
-        if item ~= vim.api.nvim_buf_get_name(0) and file_exists(item) then
+        if item ~= vim.api.nvim_buf_get_name(0) and util.exists(item) then
             table.insert(t, item)
         end
     end
@@ -76,7 +52,7 @@ function M.display_cache(opts)
         title = "scMFU"
     end
     pickers.new(opts, {
-        prompt_title = "[" .. title ..": " .. shrink_path(proj_root) .. " ]",
+        prompt_title = "[" .. title ..": " .. util.shrink_path(proj_root) .. " ]",
         finder = finders.new_table {
             results = t,
             entry_maker = make_entry.gen_from_file(opts)
@@ -102,11 +78,17 @@ local repos = function(opts, t)
             actions.select_default:replace(function()
                 actions.close(prompt_bufnr)
                 local selection = action_state.get_selected_entry()
-                -- todo: only remove current telescope opts
-                opts = {}
-                vim.api.nvim_set_current_dir(selection[1])
-                opts.root = expand_path(selection[1])
-                M.display_cache(opts)
+                local path = util.expand_path(selection[1])
+                print("path:", path)
+                if util.isdir(path) then
+                    vim.api.nvim_set_current_dir(path)
+                    -- todo: only remove current telescope opts
+                    opts = {}
+                    opts.root = util.expand_path(path)
+                    M.display_cache(opts)
+                else
+                    alter.del(path)
+                end
             end)
         return true
         end,
@@ -130,7 +112,7 @@ function M.display_repos(opts)
 
     local t = {}
     for _, item in ipairs(ret[1]) do
-        table.insert(t, shrink_path(item))
+        table.insert(t, util.shrink_path(item))
     end
 
     repos(require("telescope.themes").get_dropdown{}, t)
