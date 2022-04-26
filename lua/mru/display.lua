@@ -48,8 +48,7 @@ function M.display_cache(opts)
 
     local files = {}
     for _, rel_path in ipairs(ret["file"]) do
-        local abs_path = util.expand_path(rel_path)
-        if abs_path ~= vim.api.nvim_buf_get_name(0) and util.exists(abs_path) then
+        if not util.ends_with(vim.api.nvim_buf_get_name(0), rel_path) and util.exists(rel_path) then
             table.insert(files, rel_path)
         end
     end

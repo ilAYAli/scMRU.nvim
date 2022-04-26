@@ -23,10 +23,11 @@ function M.isdir(path)
 end
 
 function M.starts_with(text, prefix)
-    if text == nil or next == "" then
-        error("'text' must be specified")
-    end
     return text:find(prefix, 1, true) == 1
+end
+
+function M.ends_with(str, ending)
+    return ending == "" or str:sub(-#ending) == ending
 end
 
 function M.shrink_path(path, prefix)
