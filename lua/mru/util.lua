@@ -16,10 +16,10 @@ end
 
 -- should be called with canonical path
 function M.isdir(path)
-    if path == nil or path == "" then
-        return false
-    end
-    return M.exists(path.."/")
+    local f = io.open(path, "r")
+    local ok, _, code = f:read(1)
+    f:close()
+    return code == 21
 end
 
 function M.starts_with(text, prefix)
