@@ -16,6 +16,9 @@ end
 
 -- should be called with canonical path
 function M.isdir(path)
+    if not M.exists(path) then
+        return false
+    end
     local f = io.open(path, "r")
     local ok, _, code = f:read(1)
     f:close()
