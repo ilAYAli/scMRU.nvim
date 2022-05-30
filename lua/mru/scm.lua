@@ -16,7 +16,7 @@ function M.get_canonical_repo_root(path)
     if path == nil or path == "" then
         path = vim.api.nvim_buf_get_name(0)
         if path == nil or path == "" then
-            return
+            return cwd
         end
     end
 
