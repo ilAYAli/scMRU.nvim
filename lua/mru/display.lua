@@ -63,7 +63,7 @@ function M.display_cache(opts)
             results = files,
             entry_maker = make_entry.gen_from_file(opts)
         },
-        sorter = sorters.get_generic_fuzzy_sorter({}),
+        sorter = sorters.fuzzy_with_index_bias({}),
         previewer = conf.file_previewer(opts),
         --shorten_path = true,
     }):find()
