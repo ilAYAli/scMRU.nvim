@@ -1,6 +1,0 @@
-[submodule "lua/mru/deps/lua-xsys"]
-	path = lua/mru/deps/lua-xsys
-	url = https://github.com/stepelu/lua-xsys.git
-[submodule "lua/mru/deps/lua-ljsqlite3"]
-	path = lua/mru/deps/lua-ljsqlite3
-	url = https://github.com/stepelu/lua-ljsqlite3.git
