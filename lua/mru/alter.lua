@@ -1,4 +1,4 @@
-local sqlite = require("ljsqlite3")
+local sqlite = require"sqlite"
 local scm = require("mru.scm")
 local util = require("mru.util")
 
@@ -10,11 +10,11 @@ function M.setup(opts)
         return
     end
 
-    local conn = sqlite.open(vim.g.mru_db_path)
-    conn:exec("CREATE TABLE IF NOT EXISTS mru_list(root TEXT, file TEXT PRIMARY KEY, ts INTEGER, freq INTEGER);")
-    conn:close()
+    local db = sqlite:open(vim.g.mru_db_path, {})
+    db:eval("CREATE TABLE IF NOT EXISTS mru_list(root TEXT, file TEXT PRIMARY KEY, ts INTEGER, freq INTEGER);")
 end
 
+-- lua require("mru").add('foo.lua')
 function M.add(path)
     if vim.g.mru_db_path == nil
         then return
@@ -48,16 +48,21 @@ function M.add(path)
     end
     -- print("[+] add: root:", db_root, "path:", db_file)
 
-    local conn = sqlite.open(vim.g.mru_db_path)
+    local db = sqlite:open(vim.g.mru_db_path, {})
 
     local ts = 0
     do
-        local t = conn:exec("SELECT file, IFNULL(MAX(ts), 0) FROM mru_list")
-        if t ~= nil then
-            local ts_tmp = tostring(t[2][1]):gsub("LL", "")
-            ts = tonumber(ts_tmp)
-
-            local p = t[1][1]
+        local tab = db:eval("SELECT file, IFNULL(MAX(ts), 0) FROM mru_list")
+        -- todo: refactor
+        if tab ~= nil then
+            for ret,t in pairs(tab) do
+              for k, v in pairs(t) do
+                if type(v) == 'number' then
+                  ts = v
+                end
+              end
+            end
+            local p = tab[1].file
             if p ~= db_file then
                 ts = ts + 1
             end
@@ -66,22 +71,22 @@ function M.add(path)
 
     local freq = 0
     do
-        local t = conn:exec("SELECT freq FROM mru_list WHERE root == \""
+        local s = "SELECT freq FROM mru_list WHERE root == \""
                             .. db_root .. "\" AND file == \""
-                            .. db_file .."\";")
-        if t ~= nil then
-            local tmp = tostring(t[1][1]):gsub("LL", "")
-            freq = tonumber(tmp)
+                            .. db_file .."\";"
+        local t = db:eval(s)
+        -- increase frequency counter:
+        if type(t) == 'table' then
+            freq = t[1].freq;
         end
         freq = freq + 1
     end
 
-    conn:exec("INSERT OR REPLACE INTO mru_list VALUES ('"
+    db:eval("INSERT OR REPLACE INTO mru_list VALUES ('"
                .. db_root .. "', '"
                .. db_file .. "', '"
                .. ts      .. "', '"
                .. freq    .. "');")
-    conn:close()
 end
 
 function M.del(path)
@@ -94,9 +99,8 @@ function M.del(path)
     end
 
     local rel_path = util.shrink_path(path)
-    local conn = sqlite.open(vim.g.mru_db_path)
-    conn:exec("DELETE from mru_list WHERE file LIKE '%" .. rel_path .. "%';")
-    conn:close()
+    local db = sqlite:open(vim.g.mru_db_path, {})
+    db:eval("DELETE from mru_list WHERE file LIKE '%" .. rel_path .. "%';")
 end
 
 return M

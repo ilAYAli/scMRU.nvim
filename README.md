@@ -3,20 +3,23 @@
 <h3 align="center">Telescope integrated per repo MRU/MFU</h3>
 <br/><br/>
 
-When working with multiple source repositories, it is often beneficial to have
-one file cache per repository.
+scMRU automatically creates a Telescope integrated list of recently used files per git repository.
+<br>
+It also creates a single list for all non-tracked files to allow you to easily access all files in your file system.
+
+The list of files can be access according to Most Recently Used (MRU) or Most Frequently Used (MFU).
 <br/>
 
-Files are automatically added to the database and associated with the current
-repository.<br/>
-Untracked files are stored in the global cache.
+### Demo video
 
+https://youtu.be/Q6VgtRD93pQ
+
+
+### Demo images
 
 :MruRepos                   |  MRU for untracked files
 :-------------------------:|:-------------------------:
-![](https://github.com/ilAYAli/scMRU/blob/main/media/repos.png)  |  ![](https://github.com/ilAYAli/scMRU/blob/main/media/global_mru.png)
-MRU for neovim git repo    |  MRU for my neovim dotfiles
-![](https://github.com/ilAYAli/scMRU/blob/main/media/nvim_repo.png)  |  ![](https://github.com/ilAYAli/scMRU/blob/main/media/nvim_conf_mru.png)
+![](https://github.com/ilAYAli/scMRU.nvim/assets/1106732/120b9bb3-a8cf-483e-a467-b4a2cde83425)  |  ![](https://github.com/ilAYAli/scMRU.nvim/assets/1106732/0d5413b1-54f4-4db6-803c-5bbbdda573b6)
 
 
 ### Requirements
@@ -26,16 +29,41 @@ MRU for neovim git repo    |  MRU for my neovim dotfiles
 
 ### Installation
 
-### [Packer.nvim](https://github.com/wbthomason/packer.nvim)
+### [Lazy.nvim](https://github.com/folke/lazy.nvim)
 
 ```lua
-use 'ilAYAli/scMRU.nvim'
+
+  {
+    'ilAYAli/scMRU.nvim',
+    dependencies = 'kkharji/sqlite.lua',
+  },
 ```
 
-    sudo apt install sqlite3 libsqlite3-dev
+
+#### Linux:
+
+`sudo apt install sqlite3`
 
 
+#### MacOS:
 
+`brew install sqlite3`
+
+
+#### Windows:
+Download eg a precompiled version of sqlite3 from here: https://www.sqlite.org/download.html,
+and set sqlite_clib_path according to the installation path with either:
+
+lua:
+```lua
+vim.g.sqlite_clib_path = path/to/sqlite.dll
+```
+
+or vimscript:
+
+```vimscript
+let g:sqlite_clib_path = path/to/sqlite3.dll
+```
 
 ### Usage
 
@@ -52,7 +80,7 @@ use 'ilAYAli/scMRU.nvim'
 </br>
 It is also possible to invoke the lua functions directly and supply optional parameters.
 </br>
-This will e.g display the global MFU:
+This will e.g display the global MFU, Most Frequently Used files:
 
 ```lua
 lua require("mru").display_cache({root="__global__",algorithm="mfu"})
@@ -61,12 +89,7 @@ lua require("mru").display_cache({root="__global__",algorithm="mfu"})
 
 ### Keymap example
 ```lua
-vim.api.nvim_set_keymap('n', '<F1>',    "<Cmd>MruRepos<CR>", opts)
-vim.api.nvim_set_keymap('n', '<F2>',    "<Cmd>Mru<CR>", opts)
-vim.api.nvim_set_keymap('n', '<F3>',    "<Cmd>Mfu<CR>", opts)
+vim.keymap.set('n', '<F1>', function() require("mru").display_cache({}) end)
+vim.keymap.set('n', '<F2>', function() require("mru").display_repose({}) end)
+vim.keymap.set('n', '<F3>', function() require("mru").display_cache({algorithm="mfu"}) end)
 ```
-
-### Todo
- * Support other SCM's (svn, mercurial, ...)
- * Improve configurability
- * Windows support

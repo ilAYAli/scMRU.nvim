@@ -1,8 +1,8 @@
-local sqlite = require("ljsqlite3")
 local scm = require("mru.scm")
 local alter = require("mru.alter")
 local util = require("mru.util")
 
+local sqlite = require"sqlite"
 local pickers = require "telescope.pickers"
 local finders = require "telescope.finders"
 local sorters = require "telescope.sorters"
@@ -20,34 +20,35 @@ function M.display_cache(opts)
 
     opts = opts or { }
 
-    local db_root = ""
+    local git_root = ""
     if opts.root ~= nil then
-        db_root = util.shrink_path(opts.root)
+        git_root = util.shrink_path(opts.root)
     else
         local tmp = scm.get_canonical_repo_root()
         if tmp == nil or tmp == "" then
-            db_root = "__global__"
+            git_root = "__global__"
         else
-            db_root = util.shrink_path(tmp)
+            git_root = util.shrink_path(tmp)
         end
     end
 
-    local conn = sqlite.open(vim.g.mru_db_path)
+    local db = sqlite:open(vim.g.mru_db_path, {})
 
     local ret = nil
     if opts.algorithm == "mfu" then
-        ret = conn:exec("SELECT * FROM mru_list WHERE root LIKE '" .. db_root .. "' ORDER BY freq DESC;")
+        ret = db:eval("SELECT * FROM mru_list WHERE root LIKE '%" .. git_root .. "%' ORDER BY freq DESC;")
     else
-        ret = conn:exec("SELECT * FROM mru_list WHERE root LIKE '" .. db_root .. "' ORDER BY ts DESC;")
+        ret = db:eval("SELECT * FROM mru_list WHERE root LIKE '%" .. git_root .. "%' ORDER BY ts DESC;")
     end
 
-    conn:close()
-    if ret == nil or ret == "" then
+    if ret == nil or ret == "" or type(ret) ~= 'table' then
+      vim.print("RETURN, no data for repo: ", type(ret), git_root)
         return
     end
 
     local files = {}
-    for _, rel_path in ipairs(ret["file"]) do
+    for _, v in ipairs(ret) do
+        local rel_path = v.file
         if not util.ends_with(vim.api.nvim_buf_get_name(0), rel_path) and util.exists(rel_path) then
             table.insert(files, rel_path)
         end
@@ -58,7 +59,7 @@ function M.display_cache(opts)
         title = "scMFU"
     end
     pickers.new(opts, {
-        prompt_title = "[" .. title ..": " .. db_root .. " ]",
+        prompt_title = "[" .. title ..": " .. git_root .. " ]",
         finder = finders.new_table {
             results = files,
             entry_maker = make_entry.gen_from_file(opts)
@@ -104,19 +105,18 @@ function M.display_repos(opts)
 
     opts = opts or { }
 
-    local conn = sqlite.open(vim.g.mru_db_path)
-    local ret = conn:exec("SELECT DISTINCT root FROM mru_list ORDER BY root;")
-    conn:close()
+    local db = sqlite:open(vim.g.mru_db_path, {})
+    local ret = db:eval("SELECT DISTINCT root FROM mru_list ORDER BY root;")
 
     if ret == nil or ret == "" then
         return
     end
 
     local t = {}
-    for _, rel_dir in ipairs(ret["root"]) do
-        local abs_path = util.expand_path(rel_dir)
+    for _, v in ipairs(ret) do
+        local abs_path = util.expand_path(v.root)
         if abs_path == "__global__" or util.isdir(abs_path) then
-            table.insert(t, rel_dir)
+            table.insert(t, v.root)
         else
             print("removing dead repo:", abs_path)
             alter.del(abs_path)

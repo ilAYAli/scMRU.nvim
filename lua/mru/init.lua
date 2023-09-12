@@ -2,7 +2,7 @@ local display = require("mru.display")
 local alter = require("mru.alter")
 local scm = require("mru.scm")
 local util = require("mru.util")
-
+--
 local M = {}
 
 local function setup(opts)
@@ -30,7 +30,7 @@ local function setup(opts)
     vim.g["mru_db_path"] = dir .. "/scmru.sqlite3"
     alter.setup()
 end
-
+--
 M.setup = setup
 M.add = alter.add
 M.del = alter.del
